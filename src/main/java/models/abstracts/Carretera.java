@@ -6,7 +6,8 @@ import models.Aresta;
 @Entity
 public class Carretera extends Construccio {
 
-    @OneToOne
+    // EAGER: una sola referència; una carretera sempre es comprova amb la seva aresta
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "aresta_id", unique = true, nullable = false)
     private Aresta aresta;
 
@@ -24,7 +25,7 @@ public class Carretera extends Construccio {
     @Override
     public String toString() {
         return "Carretera{" +
-                "aresta=" + aresta +
+                "arestaId=" + (aresta != null ? aresta.getId() : null) +
                 '}';
     }
 }

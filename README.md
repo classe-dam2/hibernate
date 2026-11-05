@@ -13,3 +13,15 @@ L'objectiu és gestionar una partida i les seves dades a través d'una base de d
 
 **Curs:** 2026–2027  
 **Cicle formatiu:** CFGS Desenvolupament d'Aplicacions Multiplataforma (DAM)
+
+## DAO genèric
+
+`saveOrUpdate(entitat)` retorna la còpia resultant de `merge`, inclòs l'ID generat;
+l'objecte original no rep necessàriament aquests canvis. Les operacions CRUD
+propaguen els errors després de fer rollback.
+
+`get(id)` i `list()` retornen entitats desconnectades: les relacions lazy no
+sol·licitades no es poden consultar després de tancar la sessió. Per carregar
+atributs concrets abans del tancament, es poden indicar els seus noms directes,
+per exemple `jugadorDao.get(id, "recursos")` o `jugadorDao.list("recursos")`.
+Les relacions imbricades necessiten una consulta específica dins d'una transacció.

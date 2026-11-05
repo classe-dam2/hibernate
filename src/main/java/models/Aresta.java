@@ -19,22 +19,25 @@ public class Aresta {
 	@Column(name = "codi", nullable = false)
 	private Integer codi;
 
-	@ManyToOne
+	// LAZY: referència de tornada; s'hi arriba sempre des de la partida
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "partida_id", nullable = false)
 	private Partida partida;
 	
-	@ManyToOne
+	// EAGER: els dos extrems són dos objectes petits que es consulten a cada comprovació de carreteres i veïns
+	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "vertex_a_id", nullable = false)
 	private Vertex vertexA;
-	
-	@ManyToOne
+
+	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "vertex_b_id", nullable = false)
 	private Vertex vertexB;
 
 	public Aresta() {
 	}
 
-	@OneToOne(mappedBy = "aresta")
+	// EAGER: al costat invers d'una 1:1 el LAZY no funciona (Hibernate ha de fer la SELECT per saber si és null)
+	@OneToOne(mappedBy = "aresta", fetch = FetchType.EAGER)
 	private Carretera carretera;   // null si està lliure
 
 	public Carretera getCarretera() { return carretera; }
@@ -79,6 +82,21 @@ public void setCarretera(Carretera carretera) { this.carretera = carretera; }
 
 	public void setVertexB(Vertex vertexB) {
 		this.vertexB = vertexB;
+	}
+
+	// Iguals si tenen el mateix id; una entitat nova (id null) només és igual a ella mateixa.
+	// Es fa servir getId() i no el camp perquè en un proxy els camps són buits.
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		if (!(obj instanceof Aresta other)) return false;
+		return getId() != null && getId().equals(other.getId());
+	}
+
+	// Constant: no pot canviar quan l'entitat rep l'id, ni dependre de la classe d'un proxy
+	@Override
+	public int hashCode() {
+		return Aresta.class.hashCode();
 	}
 
 	@Override

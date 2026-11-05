@@ -1,13 +1,13 @@
 package dao;
 
-import util.SessionManager;
-
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+
+import util.SessionManager;
 
 /*
  * Aquí desenvolupem les funcions que hem definit a la interfície.
@@ -119,7 +119,7 @@ public class GenericDao<T, ID extends Serializable> implements IGenericDao<T, ID
      * RuntimeException i no HibernateException: també volem rollback amb
      * IllegalArgumentException, IllegalStateException, errors de validació...
      */
-    protected static void handleException(Session session, RuntimeException e) {
+    protected void handleException(Session session, RuntimeException e) {
         e.printStackTrace();
         if (session != null && session.getTransaction() != null && session.getTransaction().isActive()) {
             session.getTransaction().rollback();

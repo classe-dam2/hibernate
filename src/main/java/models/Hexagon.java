@@ -43,11 +43,13 @@ public class Hexagon {
 	@Column(name = "r", nullable = false)
 	private Integer r;
 
-	@ManyToOne
+	// LAZY: referència de tornada; s'hi arriba sempre des de la partida
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "partida_id", nullable = false)
 	private Partida partida;
 	
-	@OneToMany(mappedBy = "hexagon")
+	// LAZY: 6 vèrtexs per hexàgon; només es recorren dins de la sessió (producció, tauler)
+	@OneToMany(mappedBy = "hexagon", fetch = FetchType.LAZY)
 	@OrderBy("posicio")
 	private List<HexagonVertex> hexagonVertexs = new ArrayList<>();
 
@@ -122,6 +124,22 @@ public class Hexagon {
 		this.hexagonVertexs = hexagonVertexs;
 	}
 
+	// Iguals si tenen el mateix id; una entitat nova (id null) només és igual a ella mateixa.
+	// Es fa servir getId() i no el camp perquè en un proxy els camps són buits.
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		if (!(obj instanceof Hexagon other)) return false;
+		return getId() != null && getId().equals(other.getId());
+	}
+
+	// Constant: no pot canviar quan l'entitat rep l'id, ni dependre de la classe d'un proxy
+	@Override
+	public int hashCode() {
+		return Hexagon.class.hashCode();
+	}
+
+	// Sense col·leccions: podrien provocar LazyInitializationException o recursió infinita
 	@Override
 	public String toString() {
 		return "Hexagon{" +
@@ -132,7 +150,6 @@ public class Hexagon {
 				", q=" + q +
 				", r=" + r +
 				", partidaId=" + (partida != null ? partida.getId() : null) +
-				", hexagonVertexs=" + hexagonVertexs +
 				'}';
 	}
 }

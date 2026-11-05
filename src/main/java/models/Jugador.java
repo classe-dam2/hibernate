@@ -44,17 +44,21 @@ public class Jugador {
     @Column(name = "cavallersJugats", nullable = false)
     private Integer cavallersJugats = 0;
 
-    @ManyToOne
+    // EAGER: gairebé totes les accions del jugador consulten la partida (torn, estat, tauler)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "partida_id", nullable = false)
     private Partida partida;
 
-    @OneToMany(mappedBy = "jugador")
+    // LAZY: només cal per als punts i per jugar cartes; els DAO la llegeixen dins de la sessió
+    @OneToMany(mappedBy = "jugador", fetch = FetchType.LAZY)
     private List<CartaDesenvolupament> cartes = new ArrayList<>();
     
-    @OneToMany(mappedBy = "jugador")
+    // LAZY: es llegeix dins de la sessió quan cal comprovar o modificar recursos
+    @OneToMany(mappedBy = "jugador", fetch = FetchType.LAZY)
     private List<RecursJugador> recursos = new ArrayList<>();
     
-    @OneToMany(mappedBy = "jugador")
+    // LAZY: creix durant la partida; els recomptes es fan des del tauler de la partida
+    @OneToMany(mappedBy = "jugador", fetch = FetchType.LAZY)
     private List<Construccio> construccions = new ArrayList<>();
 
     public Integer getId() {
@@ -121,6 +125,22 @@ public class Jugador {
         this.recursos = recursos;
     }
 
+    // Iguals si tenen el mateix id; una entitat nova (id null) només és igual a ella mateixa.
+    // Es fa servir getId() i no el camp perquè en un proxy els camps són buits.
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof Jugador other)) return false;
+        return getId() != null && getId().equals(other.getId());
+    }
+
+    // Constant: no pot canviar quan l'entitat rep l'id, ni dependre de la classe d'un proxy
+    @Override
+    public int hashCode() {
+        return Jugador.class.hashCode();
+    }
+
+    // Sense col·leccions: podrien provocar LazyInitializationException o recursió infinita
     @Override
     public String toString() {
         return "Jugador{" +
@@ -130,8 +150,6 @@ public class Jugador {
                 ", ordreTorn=" + ordreTorn +
                 ", cavallersJugats=" + cavallersJugats +
                 ", partidaId=" + (partida != null ? partida.getId() : null) +
-                ", cartes=" + cartes +
-                ", recursos=" + recursos +
                 '}';
     }
 

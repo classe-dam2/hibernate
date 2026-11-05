@@ -24,7 +24,8 @@ public class RecursJugador {
     @Column(name = "quantitat", nullable = false)
     private Integer quantitat;
     
-    @ManyToOne(fetch = FetchType.EAGER)
+    // LAZY: referència de tornada; s'hi arriba sempre des del jugador
+    @ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "id_jugador", nullable = false)
 	private Jugador jugador;
 
@@ -58,6 +59,21 @@ public class RecursJugador {
 
     public void setJugador(Jugador jugador) {
         this.jugador = jugador;
+    }
+
+    // Iguals si tenen el mateix id; una entitat nova (id null) només és igual a ella mateixa.
+    // Es fa servir getId() i no el camp perquè en un proxy els camps són buits.
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof RecursJugador other)) return false;
+        return getId() != null && getId().equals(other.getId());
+    }
+
+    // Constant: no pot canviar quan l'entitat rep l'id, ni dependre de la classe d'un proxy
+    @Override
+    public int hashCode() {
+        return RecursJugador.class.hashCode();
     }
 
     @Override

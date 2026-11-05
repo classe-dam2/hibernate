@@ -31,10 +31,12 @@ public class HexagonVertex {
 	@Column(name = "posicio", nullable = false)
 	private Integer posicio;
 	
-	@ManyToOne(fetch = FetchType.EAGER)
+	// LAZY: referència de tornada; s'hi arriba sempre des de l'hexàgon
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "id_hexagon", nullable = false)
 	private Hexagon hexagon;
-	
+
+	// EAGER: una sola referència; sempre es mira què hi ha construït al vèrtex (producció, tauler)
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "id_vertex", nullable = false)
 	private Vertex vertex;
@@ -69,6 +71,21 @@ public class HexagonVertex {
 
 	public void setVertex(Vertex vertex) {
 		this.vertex = vertex;
+	}
+
+	// Iguals si tenen el mateix id; una entitat nova (id null) només és igual a ella mateixa.
+	// Es fa servir getId() i no el camp perquè en un proxy els camps són buits.
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		if (!(obj instanceof HexagonVertex other)) return false;
+		return getId() != null && getId().equals(other.getId());
+	}
+
+	// Constant: no pot canviar quan l'entitat rep l'id, ni dependre de la classe d'un proxy
+	@Override
+	public int hashCode() {
+		return HexagonVertex.class.hashCode();
 	}
 
 	@Override

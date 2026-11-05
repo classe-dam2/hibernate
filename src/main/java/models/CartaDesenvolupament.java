@@ -25,11 +25,13 @@ public class CartaDesenvolupament {
     @Column(name = "rondaCompra", nullable = false)
     private Integer rondaCompra;
     
-    @ManyToOne
+    // EAGER: una sola referència (null mentre la carta és a la pila); es comprova de qui és en jugar-la
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "jugador_id")
     private Jugador jugador;
-    
-    @ManyToOne
+
+    // LAZY: referència de tornada; s'hi arriba sempre des de la partida
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "partida_id", nullable = false)
     private Partida partida;
 
@@ -79,6 +81,21 @@ public class CartaDesenvolupament {
 
     public void setPartida(Partida partida) {
         this.partida = partida;
+    }
+
+    // Iguals si tenen el mateix id; una entitat nova (id null) només és igual a ella mateixa.
+    // Es fa servir getId() i no el camp perquè en un proxy els camps són buits.
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof CartaDesenvolupament other)) return false;
+        return getId() != null && getId().equals(other.getId());
+    }
+
+    // Constant: no pot canviar quan l'entitat rep l'id, ni dependre de la classe d'un proxy
+    @Override
+    public int hashCode() {
+        return CartaDesenvolupament.class.hashCode();
     }
 
     @Override

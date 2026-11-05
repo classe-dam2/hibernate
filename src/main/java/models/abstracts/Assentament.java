@@ -5,7 +5,8 @@ import models.Vertex;
 
 @Entity
 public abstract class Assentament extends Construccio {
-    @OneToOne
+    // EAGER: una sola referència; un assentament sempre es mostra o es comprova amb el seu vèrtex
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "vertex_id", unique = true, nullable = false)
     private Vertex vertex;
 
@@ -24,7 +25,7 @@ public abstract class Assentament extends Construccio {
     @Override
     public String toString() {
         return "Assentament{" +
-                "vertex=" + vertex +
+                "vertexId=" + (vertex != null ? vertex.getId() : null) +
                 '}';
     }
 }

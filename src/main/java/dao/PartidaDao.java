@@ -25,9 +25,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +71,7 @@ public class PartidaDao extends GenericDao<Partida, Integer> implements IPartida
 
             Partida partida = new Partida();
             partida.setEstat(EstatPartida.PREPARACIO);
-            partida.setDataInici(new Date());
+            partida.setDataInici(LocalDateTime.now());
             partida.setRonda(1);
             partida.setUltimaTirada(0);
             partida.setPuntsPerGuanyar(PUNTS_PER_GUANYAR);

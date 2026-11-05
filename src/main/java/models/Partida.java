@@ -7,8 +7,8 @@ import jakarta.validation.constraints.NotNull;
 import models.enums.EstatPartida;
 import org.hibernate.annotations.DynamicInsert;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @NamedQuery(name = "Partida.perEstat",
@@ -29,7 +29,7 @@ public class Partida {
 
     @NotNull
     @Column(name = "dataInici", nullable = false)
-    private Date dataInici;
+    private LocalDateTime dataInici;
 
     @Min(value = 0, message = "La ronda no pot ser menor a cero")
     @Column(name = "ronda", nullable = false)
@@ -50,32 +50,40 @@ public class Partida {
     @Column(name = "lladrePendent", nullable = false)
     private boolean lladrePendent;
 
-    @OneToMany(mappedBy = "partida")
+    // LAZY: col·lecció; els DAO la recorren sempre dins de la sessió
+    @OneToMany(mappedBy = "partida", fetch = FetchType.LAZY)
     @OrderBy("ordreTorn")
     private List<Jugador> jugadors = new ArrayList<>();
 
-    @ManyToOne
+    // EAGER: una sola referència que es consulta a cada acció (de qui és el torn)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "jugador_actiu_id")
     private Jugador jugadorActiu;
 
-    @ManyToOne
+    // EAGER: una sola referència (null fins que algú guanya), igual que jugadorActiu
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "jugador_guanyador_id")
     private Jugador jugadorGuanyador;
     
-    @OneToMany(mappedBy = "partida")
+    // LAZY: 19 hexàgons amb les seves relacions; només es recorren dins de la sessió
+    @OneToMany(mappedBy = "partida", fetch = FetchType.LAZY)
     @OrderBy("codi")
     private List<Hexagon> hexagons = new ArrayList<>();
     
-    @OneToMany(mappedBy = "partida")
+    // LAZY: 54 vèrtexs per partida; només es recorren dins de la sessió
+    @OneToMany(mappedBy = "partida", fetch = FetchType.LAZY)
     private List<Vertex> vertexs = new ArrayList<>();
     
-    @OneToMany(mappedBy = "partida")
+    // LAZY: 72 arestes per partida; només es recorren dins de la sessió
+    @OneToMany(mappedBy = "partida", fetch = FetchType.LAZY)
     private List<Aresta> arestas = new ArrayList<>();
     
-    @OneToMany(mappedBy = "partida")
+    // LAZY: 21 cartes; només es consulten quan es compra una carta
+    @OneToMany(mappedBy = "partida", fetch = FetchType.LAZY)
     private List<CartaDesenvolupament> pila = new ArrayList<>();
 
-    @ManyToOne
+    // EAGER: una sola referència que es consulta a cada tirada (el lladre bloqueja la producció)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "hexagon_lladre_id")
     private Hexagon lladre;
 
@@ -95,11 +103,11 @@ public class Partida {
         this.estat = estat;
     }
 
-    public Date getDataInici() {
+    public LocalDateTime getDataInici() {
         return dataInici;
     }
 
-    public void setDataInici(Date dataInici) {
+    public void setDataInici(LocalDateTime dataInici) {
         this.dataInici = dataInici;
     }
 
@@ -207,6 +215,22 @@ public class Partida {
         this.lladre = lladre;
     }
 
+    // Iguals si tenen el mateix id; una entitat nova (id null) només és igual a ella mateixa.
+    // Es fa servir getId() i no el camp perquè en un proxy els camps són buits.
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof Partida other)) return false;
+        return getId() != null && getId().equals(other.getId());
+    }
+
+    // Constant: no pot canviar quan l'entitat rep l'id, ni dependre de la classe d'un proxy
+    @Override
+    public int hashCode() {
+        return Partida.class.hashCode();
+    }
+
+    // Sense relacions ni col·leccions: podrien provocar LazyInitializationException o recursió infinita
     @Override
     public String toString() {
         return "Partida{" +
@@ -218,14 +242,9 @@ public class Partida {
                 ", puntsPerGuanyar=" + puntsPerGuanyar +
                 ", dausTirats=" + dausTirats +
                 ", lladrePendent=" + lladrePendent +
-                ", jugadors=" + jugadors +
-                ", jugadorActiu=" + jugadorActiu +
-                ", jugadorGuanyador=" + jugadorGuanyador +
-                ", hexagons=" + hexagons +
-                ", vertexs=" + vertexs +
-                ", arestas=" + arestas +
-                ", pila=" + pila +
-                ", lladre=" + lladre +
+                ", jugadorActiuId=" + (jugadorActiu != null ? jugadorActiu.getId() : null) +
+                ", jugadorGuanyadorId=" + (jugadorGuanyador != null ? jugadorGuanyador.getId() : null) +
+                ", lladreId=" + (lladre != null ? lladre.getId() : null) +
                 '}';
     }
 }
